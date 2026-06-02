@@ -1,0 +1,4 @@
+treys
+numpy
+matplotlib
+tqdm
