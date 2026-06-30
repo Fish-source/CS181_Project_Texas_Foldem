@@ -71,7 +71,12 @@ class PokerEnv:
         if action not in legal:
             action = legal[0] if Action.FOLD in legal else legal[0]
 
+        old_stage = self.state.stage
         self.state = self.rule_engine.apply_action(self.state, action)
+        new_stage = self.state.stage
+
+        if not self.state.is_terminal and new_stage != old_stage:
+            self.deal_community_cards()
 
         if self.state.is_terminal:
             payoffs = self.rule_engine.compute_payoffs(self.state)

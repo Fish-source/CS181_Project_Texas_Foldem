@@ -8,6 +8,7 @@
 Texas_Foldem/
 ├── config.py                      # 全局常量与配置
 ├── requirements.txt               # Python依赖
+├── main.py                        # 入口脚本（train/eval/tournament）
 ├── engine/                        # 扑克引擎核心
 │   ├── __init__.py
 │   ├── card.py                    # Card、Deck（52张牌，洗牌，发牌）
@@ -17,17 +18,21 @@ Texas_Foldem/
 │   └── poker_env.py               # Gym-like环境（reset/step/observe）
 ├── agents/                        # 智能体
 │   ├── __init__.py
-│   ├── base_agent.py              # 抽象基类 [已实现]
+│   ├── base_agent.py              # 抽象基类
+│   ├── random_agent.py            # 随机基线Agent
+│   ├── ql_agent.py                # Q-learning Agent
 │   ├── expectimax_agent.py        # Expectimax智能体 [TODO: Linpei Duan]
 │   ├── gto_agent.py               # GTO启发式智能体 [TODO: Linpei Duan]
 │   └── opponent_model.py          # 对手建模 [TODO: Linpei Duan]
-├── training/                      # 训练框架 [TODO]
-│   ├── state_encoder.py           # 状态编码器
-│   └── trainer.py                 # 训练主循环
-├── evaluation/                    # 评估系统 [TODO]
-│   ├── evaluator.py               # 胜率/平均收益/动作熵
+├── training/                      # 训练框架
+│   ├── __init__.py
+│   ├── state_encoder.py           # 状态编码器（11桶×5桶×5桶×4阶段=1100状态）
+│   └── trainer.py                 # 训练主循环（混合训练：70% self-play + 30% random）
+├── evaluation/                    # 评估系统
+│   ├── __init__.py
+│   ├── evaluator.py               # 胜率/平均收益/动作熵/循环对战
 │   └── visualize.py               # 图表绘制 [TODO: Mohan Li]
-└── main.py                        # 入口脚本 [TODO]
+└── q_table.pkl                    # 训练后保存的Q-table（运行后生成）
 ```
 
 ## 游戏规则设定
