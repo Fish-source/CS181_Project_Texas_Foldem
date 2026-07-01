@@ -163,8 +163,9 @@ class ExpectimaxAgent(BaseAgent):
         # Monte Carlo 采样对手手牌，计算对手各动作概率
         total_ev = 0.0
         opp_action_counts = {a: 0.0 for a in opp_acts}
+        opp_sample_count = min(self.num_samples, 5)
 
-        for _ in range(self.num_samples):
+        for _ in range(opp_sample_count):
             opp_hand = self._sample_opponent_hand(hand, board)
             opp_probs = self._opponent_action_probs(
                 opp_hand, board, new_pot, stage, opp_chips,
@@ -173,13 +174,13 @@ class ExpectimaxAgent(BaseAgent):
 
             for opp_act in opp_acts:
                 prob = opp_probs.get(opp_act, 1.0 / len(opp_acts))
-                opp_action_counts[opp_act] += prob / self.num_samples
+                opp_action_counts[opp_act] += prob / opp_sample_count
 
                 # 模拟对手动作后的状态
                 outcome = self._simulate_opponent_response(
                     next_obs, opp_hand, opp_act, depth
                 )
-                total_ev += prob * outcome / self.num_samples
+                total_ev += prob * outcome / opp_sample_count
 
         return total_ev
 
@@ -216,12 +217,13 @@ class ExpectimaxAgent(BaseAgent):
         known = set((c.suit, c.rank) for c in hand + board)
         remaining_cards = [c for c in ALL_CARDS if (c.suit, c.rank) not in known]
 
-        for _ in range(self.num_samples):
+        card_samples = min(self.num_samples, 10)
+        for _ in range(card_samples):
             random.shuffle(remaining_cards)
             sampled_board = board + remaining_cards[:cards_needed]
             total_ev += self._evaluate_leaf(dict(next_obs, community_cards=sampled_board))
 
-        return total_ev / self.num_samples
+        return total_ev / card_samples
 
     # ── 叶子评估 ──────────────────────────────────────────────
 
@@ -236,7 +238,7 @@ class ExpectimaxAgent(BaseAgent):
         pot = obs.get('pot', 0)
 
         win_rate = self.hand_evaluator.monte_carlo_win_rate(
-            hand, board, num_simulations=200
+            hand, board, num_simulations=self.num_samples
         )
 
         # 我方已在本街的下注（成本）
@@ -255,7 +257,7 @@ class ExpectimaxAgent(BaseAgent):
         my_total = obs.get('my_total_bet', 0)
 
         win_rate = self.hand_evaluator.monte_carlo_win_rate(
-            hand, board, num_simulations=500
+            hand, board, num_simulations=self.num_samples
         )
         return win_rate * pot - (1.0 - win_rate) * my_total
 
@@ -347,7 +349,7 @@ class ExpectimaxAgent(BaseAgent):
         # 从对手视角计算每个动作的 EV
         call_amount = max(0, our_bet - opp_bet)
         win_rate = self.hand_evaluator.monte_carlo_win_rate(
-            opp_hand, board, num_simulations=200
+            opp_hand, board, num_simulations=self.num_samples
         )
         lose_rate = 1.0 - win_rate
 

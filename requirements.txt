@@ -1,4 +1,5 @@
 treys
 numpy
 matplotlib
+seaborn
 tqdm
